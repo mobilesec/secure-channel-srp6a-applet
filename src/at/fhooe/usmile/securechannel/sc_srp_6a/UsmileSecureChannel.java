@@ -10,7 +10,7 @@ import javacard.framework.JCSystem;
 import javacard.framework.Util;
 
 /**
- * @author Endalkachew Asnake
+ * @author endalkachew.asnake
  * 
  */
 public class UsmileSecureChannel {
@@ -35,8 +35,7 @@ public class UsmileSecureChannel {
 	private static final byte[] sw_ok = new byte[]{(byte)0x90, 0x00};
 	
 	private static final  short SW_BLOCKED = 0x0100;
-	//private static final  short SW_FAILED = 0x0110;
- 
+  
 	/**
 	 * Constructor
 	 * 
@@ -171,7 +170,7 @@ public class UsmileSecureChannel {
 	}
 
 	/** 
-	 * processes incoming ISO/IEC 7816 secure messaging Command APDU buffer and
+	 * Processes incoming ISO/IEC 7816 secure messaging Command APDU buffer and
 	 * updates the the input buffer with decoded Command APDU buffer
 	 * 
 	 * @param incomingBuffer incoming secure messaging Command APDU buffer

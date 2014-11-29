@@ -8,6 +8,12 @@ import javacard.security.MessageDigest;
 import javacard.security.Signature;
 import javacardx.crypto.Cipher;
 
+
+/**
+ * 
+ * @author endalkachew.asnake
+ *
+ */
 public class SecureMessaging {
 
 	private AESKey mEncryptionKey;
@@ -367,154 +373,6 @@ public class SecureMessaging {
 		return unpaddedLen;
 	}
 
-	
-/**
- * ============================= The following three methods are optional ways of computing MAC ======================
- * ============================= left only for the purpose of documentation  	======================================
- * ============================= the are not useful in the current implementation ====================================
- * 	
- */
-	
-	/**
-	 *  N.B. This method is not used in the current implementation
-	 * 
-	 * Calculates MAC over input according to ETSI TS 102 176-2 - Which uses CBC
-	 * MAC with Encryption of Last Block the MAC is constructed using AES CBC
-	 * cipher (ISO/IEC 9797 Mac algorithm 2)
-	 * 
-	 * @param input
-	 * @param offset
-	 * @param length
-	 * @param output
-	 * @param outOffset
-	 */
-
-	public void computeChecksum_CBC_MAC_with_AES_CBC_Cipher(byte[] input,
-			short offset, short length, byte[] output, short outOffset) {
-		if (length % BLOCK_SIZE != 0) {
-			// exception incorrect input block size
-			return;
-		}
-		if (ssc == (short) 0x0fff) {
-			// exception max counter ... re-establish secure session
-			return;
-		}
-		ssc++;
-		Util.setShort(tempBuffer, OFFSET_SEND_SEQUENCE_COUNTER, ssc);
-		 
-		short len = (short) (length / BLOCK_SIZE);
-		short xIndex = offset;
-		/**
-		 * make sure the output is set to 0 ... because block chain starts with 0 IV
-		 */
-		Util.arrayFillNonAtomic(output, outOffset, BLOCK_SIZE, (byte)0x00);
-		 
-		for (short i = 0; i < len; i++) {
-			 
-			mAESCipher.init(mMackey_1, Cipher.MODE_ENCRYPT, output,
-					outOffset, BLOCK_SIZE);
-			mAESCipher.doFinal(tempBuffer, xIndex , BLOCK_SIZE, output, outOffset);
- 	 
-			xIndex = (short) (xIndex + BLOCK_SIZE);
-		}
-		mAESCipher.init(mMackey_2, Cipher.MODE_ENCRYPT, tempBuffer,
-				OFFSET_ZERO_IV, BLOCK_SIZE);
-		mAESCipher.doFinal(output, outOffset , BLOCK_SIZE, output, outOffset);
-
-	}
-
-	/**
-	 * 
-	 *   N.B. This method is not used in the current implementation
-	 * 
-	 * Calculates MAC over input according to ETSI TS 102 176-2 - Which uses CBC
-	 * MAC with Encryption of Last Block constructed from AES CBC Signature and
-	 * AES Cipher for encrypting the last output is more efficient compared to
-	 * using using only AES Cipher
-	 * 
-	 * @param input
-	 * @param offset
-	 * @param length
-	 * @param output
-	 * @param outOffset
-	 */
-
-	public void computeChecksum_CBC_MAC_from_AES_CBCSignature(byte[] input,
-			short offset, short length, byte[] output, short outOffset) {
-		if (length % BLOCK_SIZE != 0) {
-			// exception incorrect input block size
-			return;
-		}
-		if (ssc == (short) 0x0fff) {
-			// exception max counter ... re-establish secure session
-			return;
-		}
-		ssc++;
-		Util.setShort(tempBuffer, OFFSET_SEND_SEQUENCE_COUNTER, ssc);
-		/**
-		 * sign with CBC
-		 */
-		mSignature.init(mMackey_1, Signature.MODE_SIGN, tempBuffer,
-				OFFSET_ZERO_IV, BLOCK_SIZE);
-		
-		mSignature.sign(input, offset, length, output, outOffset);
-		/**
-		 * encrypt the output with sub key 2
-		 */
-		mAESCipher.init(mMackey_2, Cipher.MODE_ENCRYPT, tempBuffer,
-				OFFSET_ZERO_IV, BLOCK_SIZE);
-		mAESCipher.doFinal(output, outOffset , BLOCK_SIZE, output, outOffset);
-
-	}
-
-	/**
-	 *  N.B. This method is not used in the current implementation
-	 *  
-	 * Calculates MAC over input according to RFC 4493 - The last block to this
-	 * input is always padded as specified in ETSI TS 102 176-2. There for The
-	 * second Mac sub key is XORed with the last block before encryption
-	 * 
-	 * @param input
-	 * @param offset
-	 * @param length
-	 * @param output
-	 * @param outOffset
-	 */
-	public void computeChecksum_CMAC_with_AES_CBC_Cipher(byte[] input,
-			short offset, short length, byte[] output, short outOffset) {
-		if (length % BLOCK_SIZE != 0) {
-			// exception incorrect input block size
-			return;
-		}
-		if (ssc == (short) 0x0fff) {
-			// exception max counter ... re-establish secure session
-			return;
-		}
-		ssc++;
-		Util.setShort(tempBuffer, OFFSET_SEND_SEQUENCE_COUNTER, ssc);
-    
-		short len = (short) (length / BLOCK_SIZE);
-		short xIndex = offset;
-		mAESCipher.init(mMackey_1, Cipher.MODE_ENCRYPT, tempBuffer,
-				OFFSET_ZERO_IV, BLOCK_SIZE);
-		for (short i = 0; i < len; i++) {
-			
-			if (i == (short) (len - 1)) {
-				short j = 0;
-				while (j < BLOCK_SIZE) {
-					output[(short) (outOffset + j)] = (byte) (output[(short) (outOffset + j)] ^ tempBuffer[(short) (OFFSET_MAC_KEY_2 + j)]);
-					j++;
-				}
-				mAESCipher.doFinal(tempBuffer, outOffset , BLOCK_SIZE, output, outOffset);
-				return;
-			} 
-			
-			mAESCipher.update(tempBuffer, xIndex , BLOCK_SIZE, output, outOffset);
- 	 
-			xIndex = (short) (xIndex + BLOCK_SIZE);
-		}
-	}
-
-	
+ 
 	
 }

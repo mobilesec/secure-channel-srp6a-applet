@@ -4,11 +4,16 @@ import javacard.framework.APDU;
 import javacard.framework.Applet;
 import javacard.framework.ISO7816;
 
+/**
+ * 
+ * @author endalkachew.asnake
+ *
+ */
 public class TestSecureChannel extends Applet {
 
 	 
-	UsmileSecureChannel usChannel;  
-	
+	private UsmileSecureChannel usChannel;  
+	 
 	public TestSecureChannel(byte[] bArray, short bOffset, byte bLength){
 		
 	    byte iLen = bArray[bOffset]; // aid length
@@ -29,6 +34,7 @@ public class TestSecureChannel extends Applet {
 		
 	}
 
+	 
 	public void process(APDU apdu) {
 		// Good practice: Return 9000 on SELECT
 		if (selectingApplet()) { 	
@@ -36,12 +42,16 @@ public class TestSecureChannel extends Applet {
 		}
 		byte[] incomingBuf = apdu.getBuffer(); 
   		short length = apdu.setIncomingAndReceive();
+  		
 		if(!usChannel.isSessionSecure()){
+			// Handles all srp key agreement and authentication operations
 			usChannel.establishSecureSession(apdu, incomingBuf);
 		}else{
 			if(incomingBuf[ISO7816.OFFSET_INS] == 0x20){
 				usChannel.resetSessionState();
 			}else{
+				// Secure session 
+				// Echoes the content of a secure message whithin this secure channel session
 				short decodedLC = usChannel.decodeIncoming(apdu, incomingBuf, length);
 				if(decodedLC >   0){ 		
 			 		usChannel.encodeAndSend(apdu, incomingBuf, ISO7816.OFFSET_CDATA, (short)(incomingBuf[ISO7816.OFFSET_LC] & 0x00FF));

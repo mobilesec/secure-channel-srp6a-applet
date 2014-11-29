@@ -9,6 +9,12 @@ import javacard.security.RSAPublicKey;
 import javacard.security.RandomData;
 import javacardx.crypto.Cipher;
 
+
+/**
+ * 
+ * @author endalkachew.asnake
+ *
+ */
 public class UsmileKeyAgreement {
 
 	/**
